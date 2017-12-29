@@ -18,11 +18,13 @@ public class DrawerLongClickListner implements AdapterView.OnItemLongClickListen
     Context ctx;
     SlidingDrawer drawer;
     RelativeLayout homeview;
+    Item[] itemsForListener;
 
-    public DrawerLongClickListner(Context ctx, SlidingDrawer drawer, RelativeLayout homeview) {
+    public DrawerLongClickListner(Context ctx, SlidingDrawer drawer, RelativeLayout homeview,Item[] items) {
         this.ctx = ctx;
         this.drawer = drawer;
         this.homeview = homeview;
+        this.itemsForListener=items;
     }
 
     @Override
@@ -36,6 +38,11 @@ public class DrawerLongClickListner implements AdapterView.OnItemLongClickListen
         ((ImageView)ll.findViewById(R.id.icon_image)).setImageDrawable(((ImageView)view.findViewById(R.id.icon_image)).getDrawable());
         ((TextView)ll.findViewById(R.id.icon_text)).setText(((TextView)view.findViewById(R.id.icon_text)).getText());
          ll.setOnTouchListener(new AppTouchListener(view.getWidth()));
+         ll.setOnClickListener(new AppClickListner(itemsForListener,ctx));
+         String[] data = new String[2];
+        data[0]=itemsForListener[i].packageName;
+        data[1]=itemsForListener[i].name;
+        ll.setTag(data);
 
         homeview.addView(ll,lp);
         drawer.animateClose();
