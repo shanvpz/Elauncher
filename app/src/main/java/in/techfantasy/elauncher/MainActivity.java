@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
     SlidingDrawer slidingdrawer;
     RelativeLayout homeview;
     AppWidgetManager mAppWidgetManager;
-    AppWidgetHost mAppWidgetHost;
+    LauncherAppWidgetHost mAppWidgetHost;
     int REQUEST_CREATE_APPWIDGET=900;
     int numWidgets;
 
@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAppWidgetManager = AppWidgetManager.getInstance(this);
-        mAppWidgetHost = new AppWidgetHost(this, R.id.APPWIDGET_HOST_ID);
+        mAppWidgetHost = new LauncherAppWidgetHost(this, R.id.APPWIDGET_HOST_ID);
         pm=getPackageManager();
         gv=findViewById(R.id.content);
         slidingdrawer =findViewById(R.id.sliding);
