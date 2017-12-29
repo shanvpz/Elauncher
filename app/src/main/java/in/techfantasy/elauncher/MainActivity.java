@@ -23,6 +23,7 @@ public class MainActivity extends Activity {
         gv=findViewById(R.id.content);
         setItems();
         gv.setAdapter(new DrawerAdapter(this,items));
+        gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this,items,pm));
     }
     public void setItems(){
         final Intent mainIntent=new Intent(Intent.ACTION_MAIN,null);
