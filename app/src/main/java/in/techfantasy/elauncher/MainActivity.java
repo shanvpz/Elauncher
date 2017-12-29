@@ -34,7 +34,7 @@ public class MainActivity extends Activity {
             items[i].icon=itemList.get(i).loadIcon(pm);
             items[i].name=itemList.get(i).activityInfo.packageName;
             items[i].label=itemList.get(i).loadLabel(pm).toString();
-
         }
+        new SortApps().exchange_sort(items);
     }
 }
