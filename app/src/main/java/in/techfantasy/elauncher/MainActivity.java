@@ -16,6 +16,7 @@ public class MainActivity extends Activity {
     PackageManager pm;
     GridView gv;
     DrawerAdapter Adapter;
+    static boolean appLaunchable=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
