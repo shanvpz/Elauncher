@@ -1,12 +1,14 @@
 package in.techfantasy.elauncher;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * Created by campusiq on 29/12/17.
@@ -36,12 +38,27 @@ class DrawerAdapter extends BaseAdapter{
         return 0;
     }
 
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ImageView imageView=new ImageView(ctx);
-        imageView.setImageDrawable(items[position].icon);
-        imageView.setLayoutParams(new GridView.LayoutParams(65,65));
-        imageView.setPadding(3,3,3,3);
-        return imageView;
+        ViewHolder vh;
+        LayoutInflater li=(LayoutInflater)ctx.getSystemService(ctx.LAYOUT_INFLATER_SERVICE);
+        if(convertView==null){
+            convertView=li.inflate(R.layout.draweritem,null);
+            vh=new ViewHolder();
+            vh.tv=convertView.findViewById(R.id.icon_text);
+            vh.iv=convertView.findViewById(R.id.icon_image);
+            convertView.setTag(vh);
+        }
+        else
+            vh= (ViewHolder) convertView.getTag();
+            vh.iv.setImageDrawable(items[position].icon);
+            vh.tv.setText(items[position].label);
+
+        return convertView;
+    }
+    static class ViewHolder{
+        TextView tv;
+        ImageView iv;
     }
 }
