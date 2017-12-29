@@ -35,7 +35,7 @@ public class DrawerLongClickListner implements AdapterView.OnItemLongClickListen
         LinearLayout ll= (LinearLayout) li.inflate(R.layout.draweritem,null);
         ((ImageView)ll.findViewById(R.id.icon_image)).setImageDrawable(((ImageView)view.findViewById(R.id.icon_image)).getDrawable());
         ((TextView)ll.findViewById(R.id.icon_text)).setText(((TextView)view.findViewById(R.id.icon_text)).getText());
-
+         ll.setOnTouchListener(new AppTouchListener(view.getWidth()));
 
         homeview.addView(ll,lp);
         drawer.animateClose();
