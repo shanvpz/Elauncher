@@ -53,7 +53,8 @@ public class MainActivity extends Activity {
         for(int i=0;i<itemList.size();i++){
             items[i]=new Item();
             items[i].icon=itemList.get(i).loadIcon(pm);
-            items[i].name=itemList.get(i).activityInfo.packageName;
+            items[i].packageName=itemList.get(i).activityInfo.packageName;
+            items[i].name=itemList.get(i).activityInfo.name;
             items[i].label=itemList.get(i).loadLabel(pm).toString();
         }
         new SortApps().exchange_sort(items);

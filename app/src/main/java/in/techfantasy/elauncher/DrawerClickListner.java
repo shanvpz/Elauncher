@@ -1,5 +1,6 @@
 package in.techfantasy.elauncher;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,7 +25,10 @@ PackageManager pm;
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         if(MainActivity.appLaunchable) {
-            Intent launch = pm.getLaunchIntentForPackage(packs[i].name);
+            Intent launch = new Intent(Intent.ACTION_MAIN);
+            launch.addCategory(Intent.CATEGORY_LAUNCHER);
+            ComponentName cn=new ComponentName(packs[i].packageName,packs[i].name);
+            launch.setComponent(cn);
             ctx.startActivity(launch);
         }
     }

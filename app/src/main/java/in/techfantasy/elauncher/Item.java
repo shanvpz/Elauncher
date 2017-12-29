@@ -10,5 +10,6 @@ public class Item {
     Drawable icon;
     String name;
     String label;
+    String packageName;
     boolean visible;
 }
