@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
         new SortApps().exchange_sort(items);
         gv.setAdapter(new DrawerAdapter(this,items));
         gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this,items,pm));
-        gv.setOnItemLongClickListener(new DrawerLongClickListner(MainActivity.this,slidingdrawer,homeview));
+        gv.setOnItemLongClickListener(new DrawerLongClickListner(MainActivity.this,slidingdrawer,homeview,items));
 
     }
 
