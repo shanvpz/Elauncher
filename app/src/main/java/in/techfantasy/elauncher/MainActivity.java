@@ -8,6 +8,8 @@ import android.content.pm.ResolveInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.GridView;
+import android.widget.RelativeLayout;
+import android.widget.SlidingDrawer;
 
 import java.util.List;
 
@@ -15,7 +17,10 @@ public class MainActivity extends Activity {
     Item[] items;
     PackageManager pm;
     GridView gv;
-    DrawerAdapter Adapter;
+    SlidingDrawer slidingdrawer;
+    RelativeLayout homeview;
+
+
     static boolean appLaunchable=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +28,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         pm=getPackageManager();
         gv=findViewById(R.id.content);
+        slidingdrawer =findViewById(R.id.sliding);
+        homeview=findViewById(R.id.home_view_layout);
         setItems();
 
 
@@ -47,6 +54,7 @@ public class MainActivity extends Activity {
         new SortApps().exchange_sort(items);
         gv.setAdapter(new DrawerAdapter(this,items));
         gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this,items,pm));
+        gv.setOnItemLongClickListener(new DrawerLongClickListner(MainActivity.this,slidingdrawer,homeview));
 
     }
 
