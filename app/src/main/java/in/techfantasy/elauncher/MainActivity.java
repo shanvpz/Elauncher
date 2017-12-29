@@ -31,7 +31,12 @@ public class MainActivity extends Activity {
         slidingdrawer =findViewById(R.id.sliding);
         homeview=findViewById(R.id.home_view_layout);
         setItems();
-
+        slidingdrawer.setOnDrawerOpenListener(new SlidingDrawer.OnDrawerOpenListener() {
+            @Override
+            public void onDrawerOpened() {
+                appLaunchable=true;
+            }
+        });
 
         IntentFilter filter=new IntentFilter();
         filter.addAction(Intent.ACTION_PACKAGE_ADDED);
