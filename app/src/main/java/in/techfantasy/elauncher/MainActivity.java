@@ -2,6 +2,7 @@ package in.techfantasy.elauncher;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.support.v7.app.AppCompatActivity;
@@ -22,8 +23,14 @@ public class MainActivity extends Activity {
         pm=getPackageManager();
         gv=findViewById(R.id.content);
         setItems();
-        gv.setAdapter(new DrawerAdapter(this,items));
-        gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this,items,pm));
+
+
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        filter.addDataScheme("package");
+        registerReceiver(new ItemReceiver(),filter);
     }
     public void setItems(){
         final Intent mainIntent=new Intent(Intent.ACTION_MAIN,null);
@@ -37,6 +44,9 @@ public class MainActivity extends Activity {
             items[i].label=itemList.get(i).loadLabel(pm).toString();
         }
         new SortApps().exchange_sort(items);
+        gv.setAdapter(new DrawerAdapter(this,items));
+        gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this,items,pm));
+
     }
 
 
