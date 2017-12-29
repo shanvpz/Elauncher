@@ -23,7 +23,9 @@ PackageManager pm;
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Intent launch=pm.getLaunchIntentForPackage(packs[i].name);
-        ctx.startActivity(launch);
+        if(MainActivity.appLaunchable) {
+            Intent launch = pm.getLaunchIntentForPackage(packs[i].name);
+            ctx.startActivity(launch);
+        }
     }
 }
