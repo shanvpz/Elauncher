@@ -10,14 +10,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -43,6 +50,8 @@ public class MainActivity extends Activity {
     int REQUEST_CREATE_APPWIDGET=900;
     int REQUEST_CREATE_SHORTCUT=700;
     int numWidgets;
+    SharedPreferences globalPrefs;
+    DrawerAdapter drawerAdapterObject;
 
 
     static boolean appLaunchable=true;
@@ -52,11 +61,12 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         mAppWidgetManager = AppWidgetManager.getInstance(this);
         mAppWidgetHost = new LauncherAppWidgetHost(this, R.id.APPWIDGET_HOST_ID);
+        globalPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         pm=getPackageManager();
         gv=findViewById(R.id.content);
         slidingdrawer =findViewById(R.id.sliding);
         homeview=findViewById(R.id.home_view_layout);
-        setItems();
+        setItems(true);
         slidingdrawer.setOnDrawerOpenListener(new SlidingDrawer.OnDrawerOpenListener() {
             @Override
             public void onDrawerOpened() {
@@ -68,7 +78,9 @@ public class MainActivity extends Activity {
             @Override
             public boolean onLongClick(View v) {
                 AlertDialog.Builder b=new AlertDialog.Builder(MainActivity.this);
-                String[] items ={getResources().getString(R.string.widget),getResources().getString(R.string.shortcut)};
+                String[] items ={getResources().getString(R.string.widget),
+                        getResources().getString(R.string.shortcut),
+                getResources().getString(R.string.theme)};
                 b.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -78,6 +90,10 @@ public class MainActivity extends Activity {
                                 break;
 
                             case 1:
+                                selectShortcut();
+                                break;
+
+                            case 2:
                                 selectShortcut();
                                 break;
                         }
@@ -98,6 +114,14 @@ public class MainActivity extends Activity {
         filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
         filter.addDataScheme("package");
         registerReceiver(new ItemReceiver(),filter);
+    }
+    void selectTheme(){
+        Intent intent=new Intent(Intent.ACTION_PICK_ACTIVITY);
+        Intent filter=new Intent(Intent.ACTION_MAIN);
+        filter.addCategory("com.anddoes.launcher.THEME");
+        intent.putExtra(Intent.EXTRA_INTENT,filter);
+
+        startActivityForResult(intent,R.id.REQUEST_PICK_THEME);
     }
     void selectWidget() {
         int appWidgetId = this.mAppWidgetHost.allocateAppWidgetId();
@@ -133,6 +157,10 @@ public class MainActivity extends Activity {
             }
             else if(requestCode == REQUEST_CREATE_SHORTCUT){
                 createShortcut(data);
+            }
+            else if(requestCode == R.id.REQUEST_PICK_THEME){
+                globalPrefs.edit().putString("theme",data.getComponent().getPackageName()).commit();
+                setItems(false);
             }
         }
         else if (resultCode == RESULT_CANCELED && data != null) {
@@ -188,6 +216,8 @@ public class MainActivity extends Activity {
                 }
             });
 
+            ll.setOnClickListener(new ShortcutClickListener(this));
+
             ll.setTag(shortIntent);
             homeview.addView(ll, lp);
         }
@@ -238,7 +268,7 @@ public class MainActivity extends Activity {
         super.onStop();
         mAppWidgetHost.stopListening();
     }
-    public void setItems(){
+    public void setItems(boolean init){
         final Intent mainIntent=new Intent(Intent.ACTION_MAIN,null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> itemList=pm.queryIntentActivities(mainIntent,0);
@@ -251,11 +281,148 @@ public class MainActivity extends Activity {
             items[i].label=itemList.get(i).loadLabel(pm).toString();
         }
         new SortApps().exchange_sort(items);
-        gv.setAdapter(new DrawerAdapter(this,items));
-        gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this,items,pm));
-        gv.setOnItemLongClickListener(new DrawerLongClickListner(MainActivity.this,slidingdrawer,homeview,items));
+        themePacs();
+        if(init) {
+
+            drawerAdapterObject = new DrawerAdapter(MainActivity.this,items);
+            gv.setAdapter(drawerAdapterObject);
+            gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this, items, pm));
+            gv.setOnItemLongClickListener(new DrawerLongClickListner(MainActivity.this, slidingdrawer, homeview, items));
+        }
+            drawerAdapterObject.items=items;
+            drawerAdapterObject.notifyDataSetInvalidated();
 
     }
 
+    @SuppressWarnings("deprecation")
+    public void themePacs() {
+        //theming vars-----------------------------------------------
+        final int ICONSIZE = Tools.numtodp(65, MainActivity.this);
+        Resources themeRes = null;
+        String resPacName =globalPrefs.getString("theme", "");
+        String iconResource = null;
+        int intres=0;
+        int intresiconback = 0;
+        int intresiconfront = 0;
+        int intresiconmask = 0;
+        float scaleFactor = 1.0f;
+
+        Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
+        p.setAntiAlias(true);
+
+        Paint origP = new Paint(Paint.FILTER_BITMAP_FLAG);
+        origP.setAntiAlias(true);
+
+        Paint maskp= new Paint(Paint.FILTER_BITMAP_FLAG);
+        maskp.setAntiAlias(true);
+        maskp.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
+
+        if (resPacName.compareTo("")!=0){
+            try{themeRes =pm.getResourcesForApplication(resPacName);}catch(Exception e){};
+            if (themeRes!=null){
+                String[] backAndMaskAndFront =ThemeTools.getIconBackAndMaskResourceName(themeRes,resPacName);
+                if (backAndMaskAndFront[0]!=null)
+                    intresiconback=themeRes.getIdentifier(backAndMaskAndFront[0],"drawable",resPacName);
+                if (backAndMaskAndFront[1]!=null)
+                    intresiconmask=themeRes.getIdentifier(backAndMaskAndFront[1],"drawable",resPacName);
+                if (backAndMaskAndFront[2]!=null)
+                    intresiconfront=   themeRes.getIdentifier(backAndMaskAndFront[2],"drawable",resPacName);
+            }
+        }
+
+        BitmapFactory.Options uniformOptions = new BitmapFactory.Options();
+        uniformOptions.inScaled=false;
+        uniformOptions.inDither=false;
+        uniformOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+        Canvas origCanv;
+        Canvas canvas;
+        scaleFactor=ThemeTools.getScaleFactor(themeRes,resPacName);
+        Bitmap back=null;
+        Bitmap mask=null;
+        Bitmap front=null;
+        Bitmap scaledBitmap = null;
+        Bitmap scaledOrig = null;
+        Bitmap orig = null;
+
+        if (resPacName.compareTo("")!=0 && themeRes!=null){
+            try{
+                if (intresiconback!=0)
+                    back =BitmapFactory.decodeResource(themeRes,intresiconback,uniformOptions);
+            }catch(Exception e){}
+            try{
+                if (intresiconmask!=0)
+                    mask = BitmapFactory.decodeResource(themeRes,intresiconmask,uniformOptions);
+            }catch(Exception e){}
+            try{
+                if (intresiconfront!=0)
+                    front = BitmapFactory.decodeResource(themeRes,intresiconfront,uniformOptions);
+            }catch(Exception e){}
+        }
+        //theming vars-----------------------------------------------
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = false;
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        options.inDither = true;
+
+        for(int I=0;I<items.length;I++) {
+            if (themeRes!=null){
+                iconResource=null;
+                intres=0;
+                iconResource=ThemeTools.getResourceName(themeRes, resPacName, "ComponentInfo{"+items[I].packageName+"/"+items[I].name+"}");
+                if (iconResource!=null){
+                    intres = themeRes.getIdentifier(iconResource,"drawable",resPacName);
+                }
+
+                if (intres!=0){//has single drawable for app
+                    items[I].icon = new BitmapDrawable(BitmapFactory.decodeResource(themeRes,intres,uniformOptions));
+                }else{
+                    orig=Bitmap.createBitmap(items[I].icon.getIntrinsicWidth(), items[I].icon.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                    items[I].icon.setBounds(0, 0, items[I].icon.getIntrinsicWidth(), items[I].icon.getIntrinsicHeight());
+                    items[I].icon.draw(new Canvas(orig));
+
+                    scaledOrig =Bitmap.createBitmap(ICONSIZE, ICONSIZE, Bitmap.Config.ARGB_8888);
+                    scaledBitmap = Bitmap.createBitmap(ICONSIZE, ICONSIZE, Bitmap.Config.ARGB_8888);
+                    canvas = new Canvas(scaledBitmap);
+                    if (back!=null){
+                        canvas.drawBitmap(back, Tools.getResizedMatrix(back, ICONSIZE, ICONSIZE), p);
+                    }
+
+                    origCanv=new Canvas(scaledOrig);
+                    orig=Tools.getResizedBitmap(orig, ((int)(ICONSIZE*scaleFactor)), ((int)(ICONSIZE*scaleFactor)));
+                    origCanv.drawBitmap(orig, scaledOrig.getWidth()-(orig.getWidth()/2)-scaledOrig.getWidth()/2 ,scaledOrig.getWidth()-(orig.getWidth()/2)-scaledOrig.getWidth()/2, origP);
+
+                    if (mask!=null){
+                        origCanv.drawBitmap(mask,Tools.getResizedMatrix(mask, ICONSIZE, ICONSIZE), maskp);
+                    }
+
+                    if (back!=null){
+                        canvas.drawBitmap(Tools.getResizedBitmap(scaledOrig,ICONSIZE,ICONSIZE), 0, 0,p);
+                    }else
+                        canvas.drawBitmap(Tools.getResizedBitmap(scaledOrig,ICONSIZE,ICONSIZE), 0, 0,p);
+
+                    if (front!=null)
+                        canvas.drawBitmap(front,Tools.getResizedMatrix(front, ICONSIZE, ICONSIZE), p);
+
+                    items[I].icon = new BitmapDrawable(scaledBitmap);
+                }
+            }
+        }
+
+
+        front=null;
+        back=null;
+        mask=null;
+        scaledOrig=null;
+        orig=null;
+        scaledBitmap=null;
+        canvas=null;
+        origCanv=null;
+        p=null;
+        maskp=null;
+        resPacName=null;
+        iconResource=null;
+        intres=0;
+    }
 
 }
