@@ -9,20 +9,24 @@ import android.widget.LinearLayout;
  */
 
 public class AppTouchListener implements View.OnTouchListener {
-    int iconSize;
+    //int iconSize;
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         switch (event.getAction()){
             case MotionEvent.ACTION_MOVE:
-                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(iconSize,iconSize);
-                lp.leftMargin= (int) (event.getRawX()-iconSize/2);
-                lp.topMargin= (int) (event.getRawY()-iconSize/2);
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(v.getWidth(),v.getHeight());
+                lp.leftMargin= (int) (event.getRawX()-v.getWidth()/2);
+                lp.topMargin= (int) (event.getRawY()-v.getHeight()/2);
                 v.setLayoutParams(lp);
+                break;
+            case MotionEvent.ACTION_UP:
+                v.setOnTouchListener(null);
+                break;
         }
-        return false;
+        return true;
     }
 
-    public AppTouchListener(int iconSize) {
-        this.iconSize = iconSize;
-    }
+//    public AppTouchListener(int iconSize) {
+//        this.iconSize = iconSize;
+//    }
 }
