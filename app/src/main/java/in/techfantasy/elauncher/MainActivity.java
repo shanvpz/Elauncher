@@ -203,7 +203,7 @@ public class MainActivity extends Activity {
 
 
         if (shortcutLabel!=null && shortIntent!=null && icon!=null){
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
             lp.leftMargin = 100;
             lp.topMargin = (int) 100;
 

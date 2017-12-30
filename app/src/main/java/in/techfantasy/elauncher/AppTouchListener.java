@@ -3,6 +3,7 @@ package in.techfantasy.elauncher;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 /**
  * Created by campusiq on 29/12/17.
@@ -16,7 +17,7 @@ public class AppTouchListener implements View.OnTouchListener {
     public boolean onTouch(View v, MotionEvent event) {
         switch (event.getAction()){
             case MotionEvent.ACTION_MOVE:
-                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(v.getWidth(),v.getHeight());
+                RelativeLayout.LayoutParams lp=new RelativeLayout.LayoutParams(v.getWidth(),v.getHeight());
 
                 leftMargins = (int) (event.getRawX()-v.getWidth()/2);
                 topMargins= (int) (event.getRawY()-v.getHeight()/2);
