@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,6 +25,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -65,10 +67,12 @@ public class MainActivity extends Activity {
         mAppWidgetHost = new LauncherAppWidgetHost(this, R.id.APPWIDGET_HOST_ID);
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         pm=getPackageManager();
+        new LoadApps().execute();
+        addAppsToHome();
         gv=findViewById(R.id.content);
         slidingdrawer =findViewById(R.id.sliding);
         homeview=findViewById(R.id.home_view_layout);
-        setItems(true);
+        //setItems(true);
         slidingdrawer.setOnDrawerOpenListener(new SlidingDrawer.OnDrawerOpenListener() {
             @Override
             public void onDrawerOpened() {
@@ -270,6 +274,22 @@ public class MainActivity extends Activity {
         super.onStop();
         mAppWidgetHost.stopListening();
     }
+
+
+
+
+    public void addAppsToHome(){
+        AppSerializableData data=SerializationTools.loadSerializableData();
+        if(data!=null){
+            for(Item itemToAddHome:data.apps){
+                itemToAddHome.addToHome(this,homeview);
+            }
+        }
+    }
+
+
+
+
     public void setItems(boolean init){
         final Intent mainIntent=new Intent(Intent.ACTION_MAIN,null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -291,8 +311,10 @@ public class MainActivity extends Activity {
             gv.setOnItemClickListener(new DrawerClickListner(MainActivity.this, items, pm));
             gv.setOnItemLongClickListener(new DrawerLongClickListner(MainActivity.this, slidingdrawer, homeview, items));
         }
-            drawerAdapterObject.items=items;
+        else {
+            drawerAdapterObject.items = items;
             drawerAdapterObject.notifyDataSetInvalidated();
+        }
 
     }
 
@@ -426,5 +448,49 @@ public class MainActivity extends Activity {
         iconResource=null;
         intres=0;
     }
+    public class LoadApps extends AsyncTask<String,Void,String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            final Intent mainIntent=new Intent(Intent.ACTION_MAIN,null);
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> itemList=pm.queryIntentActivities(mainIntent,0);
+            items=new Item[itemList.size()];
+            for(int i=0;i<itemList.size();i++){
+                items[i]=new Item();
+                items[i].icon=itemList.get(i).loadIcon(pm);
+                items[i].packageName=itemList.get(i).activityInfo.packageName;
+                items[i].name=itemList.get(i).activityInfo.name;
+                items[i].label=itemList.get(i).loadLabel(pm).toString();
+            }
+            new SortApps().exchange_sort(items);
+            themePacs();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            if(drawerAdapterObject==null) {
+
+                drawerAdapterObject = new DrawerAdapter(activity,items);
+                gv.setAdapter(drawerAdapterObject);
+                gv.setOnItemClickListener(new DrawerClickListner(activity, items, pm));
+                gv.setOnItemLongClickListener(new DrawerLongClickListner(activity, slidingdrawer, homeview, items));
+            }
+            else {
+                drawerAdapterObject.items = items;
+                drawerAdapterObject.notifyDataSetInvalidated();
+            }
+        }
+    }
+
+
+    public class ItemReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //new MainActivity().setItems();
+            new LoadApps().execute();
+        }
+    }
 
 }
+
