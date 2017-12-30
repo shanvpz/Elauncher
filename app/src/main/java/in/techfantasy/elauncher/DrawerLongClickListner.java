@@ -1,6 +1,7 @@
 package in.techfantasy.elauncher;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -9,6 +10,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 /**
  * Created by campusiq on 29/12/17.
@@ -54,6 +57,26 @@ public class DrawerLongClickListner implements AdapterView.OnItemLongClickListen
         data[0]=itemsForListener[i].packageName;
         data[1]=itemsForListener[i].name;
         ll.setTag(data);
+
+        AppSerializableData objectData=SerializationTools.loadSerializableData();
+        if(objectData==null)
+            objectData=new AppSerializableData();
+
+        if(objectData.apps==null)
+            objectData.apps=new ArrayList<Item>();
+
+        Item itemToAdd=itemsForListener[i];
+        itemToAdd.x=lp.leftMargin;
+        itemToAdd.y=lp.topMargin;
+        if(MainActivity.activity.getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE){
+            itemToAdd.landscape = true;
+        }
+        else{
+            itemToAdd.landscape = false;
+        }
+
+        objectData.apps.add(itemToAdd);
+        SerializationTools.serializeData(objectData);
 
         homeview.addView(ll,lp);
         drawer.animateClose();

@@ -10,4 +10,5 @@ import java.util.List;
 
 public class AppSerializableData implements Serializable{
     List<Item> apps=new ArrayList<Item>();
+
 }
