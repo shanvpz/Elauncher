@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
     int numWidgets;
     SharedPreferences globalPrefs;
     DrawerAdapter drawerAdapterObject;
+    static Activity activity;
 
 
     static boolean appLaunchable=true;
@@ -59,6 +60,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        activity=this;
         mAppWidgetManager = AppWidgetManager.getInstance(this);
         mAppWidgetHost = new LauncherAppWidgetHost(this, R.id.APPWIDGET_HOST_ID);
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(this);

@@ -5,7 +5,10 @@ package in.techfantasy.elauncher;
  */
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 
 public class Tools {
@@ -35,5 +38,16 @@ public class Tools {
         Matrix matrix = new Matrix();
         matrix.postScale(scaleWidth, scaleHeight);
         return matrix;
+    }
+    public static Bitmap drawableToBitmap(Drawable drawable){
+        if(drawable instanceof BitmapDrawable)
+            return ((BitmapDrawable) drawable).getBitmap();
+
+        Bitmap bitmap=Bitmap.createBitmap(drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas=new Canvas();
+        drawable.setBounds(0,0,canvas.getWidth(),canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
     }
 }
